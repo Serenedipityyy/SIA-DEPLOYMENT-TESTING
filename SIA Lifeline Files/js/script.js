@@ -598,6 +598,12 @@ if (emergencyForm) {
     });
 }
 
+function canAdvance(inc) {
+    if (!isResponder() || inc.status === "RESOLVED") return false;
+    if (inc.status === "DISPATCHED") return true;
+    return isOfficer() || inc.responderId === state.user.studentId;
+}
+
 function renderDispatchAlerts() {
     const container = document.getElementById("responderDispatchQueue");
     const list = document.getElementById("dispatchAlertsList");
@@ -707,12 +713,16 @@ async function startDashboard() {
         toast(err.message, "error", 8000);
         return;
     }
+
+    // Bulletproof guard against unauthenticated or null user sessions
     if (!me || !me.user) {
         goToLogin();
         return;
     }
+
     state.user = me.user;
-    renderProfile(); renderRoleDashboard();
+    renderProfile(); 
+    renderRoleDashboard();
 
     try {
         state.meta = await api("meta.php");
@@ -740,4 +750,21 @@ async function startDashboard() {
 
     showSection(localStorage.getItem(LS.section) || "dashboard", true);
     setInterval(pollTick, POLL_MS);
+}
+
+function initApp() {
+    if (document.getElementById("dashboard")) startDashboard();
+    else {
+        try {
+            api("auth.php?action=me").then(me => {
+                if (me && me.user) window.location.replace("dashboard.html");
+            }).catch(() => {});
+        } catch (e) {}
+    }
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initApp);
+} else {
+    initApp();
 }
