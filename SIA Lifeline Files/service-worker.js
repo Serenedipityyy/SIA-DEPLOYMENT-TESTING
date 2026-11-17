@@ -1,19 +1,55 @@
-const CACHE = "lifeline-shell-v1";
-const SHELL = ["./", "./index.html", "./dashboard.html", "./css/style.css", "./js/script.js", "./manifest.webmanifest", "./icons/lifeline.svg"];
-self.addEventListener("install", event => {
-  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
+const CACHE_NAME = 'lifeline-v1';
+const ASSETS_TO_CACHE = [
+    './',
+    './index.html',
+    './dashboard.html',
+    './css/style.css',
+    './js/script.js',
+    './manifest.webmanifest'
+];
+
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME).then(async (cache) => {
+            for (const asset of ASSETS_TO_CACHE) {
+                try {
+                    await cache.add(asset);
+                } catch (err) {
+                    console.warn(`[ServiceWorker] Failed to cache: ${asset}`, err);
+                }
+            }
+        })
+    );
+    self.skipWaiting();
 });
-self.addEventListener("activate", event => {
-  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        return caches.delete(key);
+                    }
+                })
+            );
+        })
+    );
+    self.clients.claim();
 });
-self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
-  if (url.origin !== self.location.origin || /\.php(?:$|\?)/i.test(url.pathname) || event.request.method !== "GET") return;
-  event.respondWith(fetch(event.request).then(response => {
-    if (response.ok && url.origin === self.location.origin) {
-      const copy = response.clone();
-      caches.open(CACHE).then(cache => cache.put(event.request, copy));
-    }
-    return response;
-  }).catch(() => caches.match(event.request).then(cached => cached || (event.request.mode === "navigate" ? caches.match("./index.html") : Response.error()))));
+
+self.addEventListener('fetch', (event) => {
+    const url = new URL(event.request.url);
+    if (url.origin !== self.location.origin || /\.php(?:$|\?)/i.test(url.pathname) || event.request.method !== "GET") return;
+    event.respondWith(
+        fetch(event.request)
+            .then(response => {
+                if (response.ok) {
+                    const copy = response.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+                }
+                return response;
+            })
+            .catch(() => caches.match(event.request))
+    );
 });
