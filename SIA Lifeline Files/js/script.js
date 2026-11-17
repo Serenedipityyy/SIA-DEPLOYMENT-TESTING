@@ -700,7 +700,11 @@ async function startDashboard() {
     try {
         me = await api("auth.php?action=me");
     } catch (err) {
-        if (err.status !== 401) toast(err.message, "error", 8000);
+        if (err.status === 401) {
+            goToLogin();
+            return;
+        }
+        toast(err.message, "error", 8000);
         return;
     }
     if (!me || !me.user) {
