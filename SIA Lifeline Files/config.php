@@ -1,11 +1,11 @@
 <?php
-// config.php - Automatically switches between Railway environment variables and local XAMPP defaults
+// config.php - Automatically switches between Railway cloud variables and local XAMPP defaults
 
 return [
     'db_host'    => getenv('MYSQLHOST') ?: '127.0.0.1',
     'db_name'    => getenv('MYSQLDATABASE') ?: 'lifeline',
-    'db_user'    => getenv('MYSQLUSER') ?: 'lifeline_app',
-    'db_pass'    => getenv('MYSQLPASSWORD') !== false ? getenv('MYSQLPASSWORD') : 'ChangeThisPassword!',
+    'db_user'    => getenv('MYSQLUSER') ?: 'root',
+    'db_pass'    => getenv('MYSQLPASSWORD') !== false ? getenv('MYSQLPASSWORD') : '',
     'db_port'    => getenv('MYSQLPORT') ?: '3306',
     'db_charset' => 'utf8mb4',
 
