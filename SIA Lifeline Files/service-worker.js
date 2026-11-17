@@ -4,8 +4,7 @@ const ASSETS_TO_CACHE = [
     './index.html',
     './dashboard.html',
     './css/style.css',
-    './js/script.js',
-    './manifest.webmanifest'
+    './js/script.js'
 ];
 
 self.addEventListener('install', (event) => {
